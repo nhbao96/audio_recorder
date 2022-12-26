@@ -12,7 +12,7 @@ class RecorderAudioPage extends StatefulWidget {
 
 class _RecorderAudioPageState extends State<RecorderAudioPage> {
   final recoder = FlutterSoundRecorder();
-
+  bool isRecoderReady = false;
   @override
   void dispose() {
     // TODO: implement dispose
@@ -33,17 +33,29 @@ class _RecorderAudioPageState extends State<RecorderAudioPage> {
       throw 'Microphone permission not grannted';
     }
     await recoder.openRecorder();
-
+    isRecoderReady = true;
     recoder.setSubscriptionDuration(const Duration(milliseconds: 500));
   }
 
   Future record() async{
+    if(!isRecoderReady){
+      return;
+    }
     await recoder.startRecorder(toFile: 'audio');
+
   }
 
   Future stop() async{
+    if(!isRecoderReady){
+      return;
+    }
     await recoder.stopRecorder();
   }
+
+  String convert2digits(int num){
+    return  num.toString().padLeft(2, '0');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -54,8 +66,10 @@ class _RecorderAudioPageState extends State<RecorderAudioPage> {
               stream: recoder.onProgress,
               builder: (context,snapshot){
             final duration = snapshot.hasData ? snapshot.data!.duration : Duration.zero;
+            final twoDigitMinutes = convert2digits(duration.inMinutes.remainder(60));
+            final twoDigitSecond = convert2digits(duration.inSeconds.remainder(60));
 
-            return Text('${duration.inSeconds} s');
+            return Text('$twoDigitMinutes:${twoDigitSecond}s', style: TextStyle(color: Colors.white,fontSize: 60,fontWeight: FontWeight.bold),);
           }),
           const SizedBox( height : 32),
           ElevatedButton(
@@ -63,14 +77,13 @@ class _RecorderAudioPageState extends State<RecorderAudioPage> {
               recoder.isRecording ? Icons.stop : Icons.mic,
               size: 80,
             ),
-            onPressed: () {
+            onPressed: () async{
               if(recoder.isRecording){
-                 stop();
+                 await stop();
               }else{
-                 record();
+                 await record();
               }
               setState(() {
-
               });
             },
           ),
