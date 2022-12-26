@@ -1,8 +1,9 @@
-
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 class RecorderAudioPage extends StatefulWidget {
   const RecorderAudioPage({Key? key}) : super(key: key);
 
@@ -41,7 +42,8 @@ class _RecorderAudioPageState extends State<RecorderAudioPage> {
     if(!isRecoderReady){
       return;
     }
-    await recoder.startRecorder(toFile: 'audio');
+    String pathToAudio = '/sdcard/Download/audio.wav';
+    await recoder.startRecorder(toFile: pathToAudio ,codec: Codec.pcm16WAV );
 
   }
 
@@ -49,7 +51,9 @@ class _RecorderAudioPageState extends State<RecorderAudioPage> {
     if(!isRecoderReady){
       return;
     }
-    await recoder.stopRecorder();
+    final path = await recoder.stopRecorder();
+    final audioFile = File(path!);
+    print("Recorded audio : $audioFile");
   }
 
   String convert2digits(int num){
@@ -58,36 +62,39 @@ class _RecorderAudioPageState extends State<RecorderAudioPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          StreamBuilder<RecordingDisposition>(
-              stream: recoder.onProgress,
-              builder: (context,snapshot){
-            final duration = snapshot.hasData ? snapshot.data!.duration : Duration.zero;
-            final twoDigitMinutes = convert2digits(duration.inMinutes.remainder(60));
-            final twoDigitSecond = convert2digits(duration.inSeconds.remainder(60));
+    return Scaffold(
+      appBar: AppBar(title: Text("Demo audio recoder")),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            StreamBuilder<RecordingDisposition>(
+                stream: recoder.onProgress,
+                builder: (context,snapshot){
+              final duration = snapshot.hasData ? snapshot.data!.duration : Duration.zero;
+              final twoDigitMinutes = convert2digits(duration.inMinutes.remainder(60));
+              final twoDigitSecond = convert2digits(duration.inSeconds.remainder(60));
 
-            return Text('$twoDigitMinutes:${twoDigitSecond}s', style: TextStyle(color: Colors.white,fontSize: 60,fontWeight: FontWeight.bold),);
-          }),
-          const SizedBox( height : 32),
-          ElevatedButton(
-            child: Icon(
-              recoder.isRecording ? Icons.stop : Icons.mic,
-              size: 80,
+              return Text('$twoDigitMinutes:${twoDigitSecond}s', style: TextStyle(color: Colors.black87,fontSize: 60,fontWeight: FontWeight.bold),);
+            }),
+            const SizedBox( height : 32),
+            ElevatedButton(
+              child: Icon(
+                recoder.isRecording ? Icons.stop : Icons.mic,
+                size: 80,
+              ),
+              onPressed: () async{
+                if(recoder.isRecording){
+                   await stop();
+                }else{
+                   await record();
+                }
+                setState(() {
+                });
+              },
             ),
-            onPressed: () async{
-              if(recoder.isRecording){
-                 await stop();
-              }else{
-                 await record();
-              }
-              setState(() {
-              });
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
