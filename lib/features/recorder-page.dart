@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class RecorderAudioPage extends StatefulWidget {
@@ -14,6 +15,10 @@ class RecorderAudioPage extends StatefulWidget {
 class _RecorderAudioPageState extends State<RecorderAudioPage> {
   final recoder = FlutterSoundRecorder();
   bool isRecoderReady = false;
+
+  final _folderPath = Directory('/storage/emulated/0/Recordings/');
+  String _currentFilePath = '', _recordedFilePath = '';
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -29,22 +34,48 @@ class _RecorderAudioPageState extends State<RecorderAudioPage> {
 
   Future initRecorder() async{
     final status = await Permission.microphone.request();
-
+    await Permission.storage.request();
+    await Permission.accessMediaLocation.request();
+    await Permission.manageExternalStorage.request();
     if(status != PermissionStatus.granted){
       throw 'Microphone permission not grannted';
     }
     await recoder.openRecorder();
     isRecoderReady = true;
     recoder.setSubscriptionDuration(const Duration(milliseconds: 500));
+
   }
 
   Future record() async{
     if(!isRecoderReady){
       return;
     }
-    String pathToAudio = '/sdcard/Download/audio.wav';
-    await recoder.startRecorder(toFile: pathToAudio ,codec: Codec.pcm16WAV );
+   /* String pathToAudio = '/storage/emulated/0/Recordings/audio.wav';
+    await recoder.startRecorder(toFile: pathToAudio ,codec: Codec.pcm16WAV );*/
 
+    await Permission.storage.request().then((status) async {
+      if (status.isGranted) {
+        if (!(await _folderPath.exists())) {
+          _folderPath.create();
+        }
+        final _fileName = 'DEMO_${DateTime.now().millisecondsSinceEpoch.toString()}.aac';
+        _currentFilePath = '${_folderPath.path}$_fileName';
+        setState(() {});
+        recoder!.startRecorder(toFile: _currentFilePath,codec: Codec.aacADTS).then((value) {
+          setState(() {
+          });
+        });
+      } else {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Storage permission not granted'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+    print("_currentFilePath = $_currentFilePath \n\n");
   }
 
   Future stop() async{

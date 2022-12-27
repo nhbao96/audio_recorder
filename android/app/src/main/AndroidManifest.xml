@@ -1,10 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.recorder">
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-   <application
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <application
         android:label="recorder"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        android:requestLegacyExternalStorage="true"
         <activity
             android:name=".MainActivity"
             android:exported="true"
