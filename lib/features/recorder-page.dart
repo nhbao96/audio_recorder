@@ -1,9 +1,17 @@
 import 'dart:io';
 
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:amplify_core/amplify_core.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import '../amplifyconfiguration.dart';
+
+
 
 class RecorderAudioPage extends StatefulWidget {
   const RecorderAudioPage({Key? key}) : super(key: key);
@@ -15,6 +23,11 @@ class RecorderAudioPage extends StatefulWidget {
 class _RecorderAudioPageState extends State<RecorderAudioPage> {
   final recoder = FlutterSoundRecorder();
   bool isRecoderReady = false;
+
+  late PermissionStatus isPermisMicro;
+  late PermissionStatus isPermissStorage;
+  late PermissionStatus isPermissMedia;
+  late PermissionStatus isPermissExternalStorage;
 
   final _folderPath = Directory('/storage/emulated/0/Recordings/');
   String _currentFilePath = '', _recordedFilePath = '';
@@ -29,16 +42,49 @@ class _RecorderAudioPageState extends State<RecorderAudioPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    _configureAmplify();
     initRecorder();
   }
 
+  Future<void> _configureAmplify() async {
+    try {
+      final auth = AmplifyAuthCognito();
+      final storage = AmplifyStorageS3();
+      await Amplify.addPlugins([auth, storage]);
+
+      // call Amplify.configure to use the initialized categories in your app
+      await Amplify.configure(amplifyconfig);
+    } on Exception catch (e) {
+      safePrint('An error occurred configuring Amplify: $e');
+    }
+  }
+
   Future initRecorder() async{
-    final status = await Permission.microphone.request();
-    await Permission.storage.request();
-    await Permission.accessMediaLocation.request();
-    await Permission.manageExternalStorage.request();
-    if(status != PermissionStatus.granted){
-      throw 'Microphone permission not grannted';
+    try{
+      isPermisMicro = await Permission.microphone.request();
+      if(!isPermisMicro.isGranted){
+        throw 'Microphone permission not grannted';
+      }
+      isPermissStorage = await Permission.storage.request();
+      if(!isPermissStorage.isGranted){
+        throw 'Storage permission not grannted';
+      }
+      isPermissMedia = await Permission.accessMediaLocation.request();
+      if(!isPermissMedia.isGranted){
+        throw 'accessMediaLocation permission not grannted';
+      }
+      isPermissExternalStorage = await Permission.manageExternalStorage.request();
+      if(!isPermissExternalStorage.isGranted){
+        throw 'manageExternalStorage permission not grannted';
+      }
+    }catch(e){
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
     await recoder.openRecorder();
     isRecoderReady = true;
@@ -50,31 +96,17 @@ class _RecorderAudioPageState extends State<RecorderAudioPage> {
     if(!isRecoderReady){
       return;
     }
-   /* String pathToAudio = '/storage/emulated/0/Recordings/audio.wav';
-    await recoder.startRecorder(toFile: pathToAudio ,codec: Codec.pcm16WAV );*/
-
-    await Permission.storage.request().then((status) async {
-      if (status.isGranted) {
-        if (!(await _folderPath.exists())) {
-          _folderPath.create();
-        }
-        final _fileName = 'DEMO_${DateTime.now().millisecondsSinceEpoch.toString()}.aac';
-        _currentFilePath = '${_folderPath.path}$_fileName';
-        setState(() {});
-        recoder!.startRecorder(toFile: _currentFilePath,codec: Codec.aacADTS).then((value) {
-          setState(() {
-          });
-        });
-      } else {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Storage permission not granted'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+    if (!(await _folderPath.exists())) {
+      _folderPath.create();
+    }
+    final _fileName = 'DEMO_${DateTime.now().millisecondsSinceEpoch.toString()}.aac';
+    _currentFilePath = '${_folderPath.path}$_fileName';
+    setState(() {});
+    recoder!.startRecorder(toFile: _currentFilePath,codec: Codec.aacADTS).then((value) {
+      setState(() {
+      });
     });
+
     print("_currentFilePath = $_currentFilePath \n\n");
   }
 
@@ -84,6 +116,21 @@ class _RecorderAudioPageState extends State<RecorderAudioPage> {
     }
     final path = await recoder.stopRecorder();
     final audioFile = File(path!);
+
+    try {
+      final UploadFileResult result = await Amplify.Storage.uploadFile(
+          local: audioFile,
+          key: audioFile.toString(),
+          onProgress: (progress) {
+            safePrint('Fraction completed: ${progress.getFractionCompleted()}');
+          }
+      );
+      safePrint('Successfully uploaded file: ${result.key}');
+      print("upload file successfully \n\n");
+    } on StorageException catch (e) {
+      safePrint('Error uploading file: $e');
+    }
+
     print("Recorded audio : $audioFile");
   }
 

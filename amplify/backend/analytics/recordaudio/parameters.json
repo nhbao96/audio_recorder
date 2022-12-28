@@ -1,0 +1,21 @@
+{
+    "appName": "recordaudio",
+    "roleName": "pinpointLambdaRolec562adf4",
+    "cloudformationPolicyName": "cloudformationPolicyc562adf4",
+    "cloudWatchPolicyName": "cloudWatchPolicyc562adf4",
+    "pinpointPolicyName": "pinpointPolicyc562adf4",
+    "authPolicyName": "pinpoint_amplify_c562adf4",
+    "unauthPolicyName": "pinpoint_amplify_c562adf4",
+    "authRoleName": {
+        "Ref": "AuthRoleName"
+    },
+    "unauthRoleName": {
+        "Ref": "UnauthRoleName"
+    },
+    "authRoleArn": {
+        "Fn::GetAtt": [
+            "AuthRole",
+            "Arn"
+        ]
+    }
+}

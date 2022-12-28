@@ -10,6 +10,23 @@
       "StackName": "amplify-recordaudio-dev-114226",
       "StackId": "arn:aws:cloudformation:us-east-1:400466587103:stack/amplify-recordaudio-dev-114226/093b9af0-866a-11ed-bcbc-0a209ba26a63",
       "AmplifyAppId": "d3myh1p0yuvbnk"
+    },
+    "categories": {
+      "auth": {
+        "recordaudio2bea325f": {}
+      },
+      "analytics": {
+        "recordaudio": {}
+      },
+      "function": {
+        "S3Triggerdac3ff91": {
+          "deploymentBucketName": "amplify-recordaudio-dev-114226-deployment",
+          "s3Key": "amplify-builds/S3Triggerdac3ff91-476f5945715661354171-build.zip"
+        }
+      },
+      "storage": {
+        "audiosource": {}
+      }
     }
   }
 }

@@ -1,0 +1,18 @@
+{
+  "resourceName": "audiosource",
+  "policyUUID": "cf6a0045",
+  "bucketName": "recordaudio",
+  "storageAccess": "authAndGuest",
+  "guestAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "S3Triggerdac3ff91",
+  "groupAccess": {}
+}
