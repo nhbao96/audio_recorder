@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-recordaudio-dev-114226-authRole",
+      "UnauthRoleArn": "arn:aws:iam::400466587103:role/amplify-recordaudio-dev-114226-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::400466587103:role/amplify-recordaudio-dev-114226-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-recordaudio-dev-114226-deployment",
+      "UnauthRoleName": "amplify-recordaudio-dev-114226-unauthRole",
+      "StackName": "amplify-recordaudio-dev-114226",
+      "StackId": "arn:aws:cloudformation:us-east-1:400466587103:stack/amplify-recordaudio-dev-114226/093b9af0-866a-11ed-bcbc-0a209ba26a63",
+      "AmplifyAppId": "d3myh1p0yuvbnk"
+    }
+  }
+}
